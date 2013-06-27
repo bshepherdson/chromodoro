@@ -11,13 +11,16 @@ angular.module('chromodoroApp')
           estimated: 0
           elapsed: 0
           children: []
+          lastUpdatedTime: 0
 
       $scope.rootTask = value
       $scope.task = value
       $scope.hierarchy = [value]
+      $scope.$apply()
 
     # Recursive helper function for finding the totals of children.
     totals = (task) ->
+      return unless task?
       estimated = task.estimated
       elapsed = task.elapsed
       if task.children?
@@ -28,10 +31,12 @@ angular.module('chromodoroApp')
       return { estimated: estimated, elapsed: elapsed }
 
     $scope.showTotals = (task) ->
-      totals = totals(task)
-      return totals.elapsed + ' / ' + totals.estimated
+      return unless task?
+      result = totals(task)
+      return result.elapsed + ' / ' + result.estimated
 
     $scope.showMine = (task) ->
+      return unless task?
       return task.elapsed + ' / ' + task.estimated
 
     # Move up the hierarchy

@@ -22,6 +22,7 @@ module.exports = function (grunt) {
     yeoman: yeomanConfig,
     watch: {
       coffee: {
+        options: { sourceMap: true },
         files: ['<%= yeoman.app %>/scripts/{,*/}*.coffee'],
         tasks: ['coffee:dist']
       },
@@ -106,6 +107,7 @@ module.exports = function (grunt) {
     },
     coffee: {
       dist: {
+        options: { sourceMap: true },
         files: [{
           expand: true,
           cwd: '<%= yeoman.app %>/scripts',
