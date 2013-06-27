@@ -18,6 +18,8 @@ angular.module('chromodoroApp')
       $scope.hierarchy = [value]
       $scope.$apply()
 
+    timer = undefined
+
     # Recursive helper function for finding the totals of children.
     totals = (task) ->
       return unless task?
@@ -52,12 +54,21 @@ angular.module('chromodoroApp')
 
     # Performs a pomodoro on this task.
     $scope.doPomodoro = () ->
-      $scope.pomodoro =
-        task: $scope.task
-        type: 'task'
-        start: Date.now()
-        end: Date.now() + 25*60
-        active: true
+      if $scope.pomodoro?.active
+        alert('Another Pomodoro is already active')
+      else
+        $scope.task.lastUpdatedTime = Date.now()
+        timer = window.setInterval () ->
+          updateDelta()
+          $scope.$apply()
+        , 10000
+        $scope.pomodoro =
+          task: $scope.task
+          type: 'task'
+          start: Date.now()
+          end: Date.now() + 25*60*1000
+          delta: 25
+          active: true
 
     $scope.newChild = () ->
       $scope.showCreate = true
@@ -88,6 +99,7 @@ angular.module('chromodoroApp')
 
     # Saves the editing or newly created button
     $scope.commit = () ->
+      $scope.editTask.lastUpdatedTime = Date.now()
       t = $scope.editTask
       if t.name? and t.estimated? and t.elapsed?
         # If editing, it's already done being updated.
@@ -98,6 +110,18 @@ angular.module('chromodoroApp')
         $scope.showCreate = false
         save()
 
+    updateDelta = () ->
+      if $scope.pomodoro? and $scope.pomodoro.active
+        $scope.pomodoro.delta = Math.ceil(($scope.pomodoro.end - Date.now()) / 60000)
+        if $scope.pomodoro.delta <= 0
+          if $scope.pomodoro.type is 'task'
+            $scope.pomodoro =
+              type: 'break'
+              delta: 5
+              start: Date.now()
+              end: Date.now() + 5 * 60 * 1000
+          else
+            $scope.pomodoro.active = false
 
     save = () ->
       storage.store('tasks', $scope.rootTask)
