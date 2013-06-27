@@ -21,13 +21,13 @@ angular.module('chromodoroApp')
     # Recursive helper function for finding the totals of children.
     totals = (task) ->
       return unless task?
-      estimated = task.estimated
-      elapsed = task.elapsed
+      estimated = +task.estimated
+      elapsed = +task.elapsed
       if task.children?
         for c in task.children
           t = totals(c)
-          estimated += t.estimated
-          elapsed += t.elapsed
+          estimated += +t.estimated
+          elapsed += +t.elapsed
       return { estimated: estimated, elapsed: elapsed }
 
     $scope.showTotals = (task) ->
@@ -44,9 +44,62 @@ angular.module('chromodoroApp')
       return if index == $scope.hierarchy.length-1 # Do nothing if he clicked the bottommost.
 
       $scope.task = $scope.hierarchy[index]
-      $scope.hierarchy = $scope.hierarchy.splice(index+1, 1000) # Remove all later elements
+      $scope.hierarchy.splice(index+1, 1000) # Remove all later elements
 
     $scope.showChild = (index) ->
       $scope.task = $scope.task.children[index]
       $scope.hierarchy.push $scope.task
+
+    # Performs a pomodoro on this task.
+    $scope.doPomodoro = () ->
+      $scope.pomodoro =
+        task: $scope.task
+        type: 'task'
+        start: Date.now()
+        end: Date.now() + 25*60
+        active: true
+
+    $scope.newChild = () ->
+      $scope.showCreate = true
+      $scope.editing = false
+      $scope.commitLabel = 'Create'
+      $scope.editTask =
+        name: undefined
+        estimated: 1
+        elapsed: 0
+        children: []
+
+    $scope.edit = () ->
+      $scope.showCreate = true
+      $scope.editing = true
+      $scope.commitLabel = 'Edit'
+      $scope.editTask = $scope.task
+
+    $scope.delete = () ->
+      if window.confirm('This will permanently delete this task and all subtasks. It will be removed from the stats. You probably want to mark it complete instead.')
+        if $scope.hierarchy.length == 1
+          alert('Cannot delete root node')
+        else
+          parent = $scope.hierarchy[$scope.hierarchy.length - 2]
+          for c, i in parent.children
+            if c is $scope.task
+              parent.children.splice(i, 1)
+              save()
+
+    # Saves the editing or newly created button
+    $scope.commit = () ->
+      t = $scope.editTask
+      if t.name? and t.estimated? and t.elapsed?
+        # If editing, it's already done being updated.
+        if not $scope.editing
+          # If newly created, it needs to be added to the parent.
+          $scope.task.children.push $scope.editTask
+
+        $scope.showCreate = false
+        save()
+
+
+    save = () ->
+      storage.store('tasks', $scope.rootTask)
+
   ]

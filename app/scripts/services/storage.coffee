@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('chromodoroApp')
-  .factory 'storage', [($q) ->
+  .factory 'storage', ['$q', ($q) ->
     {
       # Returns a $q promise that resolves or rejects, unless passed a callback
       fetch: (key, cb) ->
