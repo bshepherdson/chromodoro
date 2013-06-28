@@ -7,6 +7,7 @@ angular.module('chromodoroApp')
       if not value?
         # Prepare the default value:
         value =
+          id: 'WORK'
           name: 'Work'
           estimated: 0
           elapsed: 0
@@ -17,6 +18,21 @@ angular.module('chromodoroApp')
       $scope.task = value
       $scope.hierarchy = [value]
       $scope.$apply()
+
+      # Launch another fetch to get the live Pomodoro, if one exists.
+      # This one must wait until all the tasks are retrieved.
+      storage.fetch 'pomodoro', (value) ->
+        if value?
+          task = findTask(value.task)
+          $scope.pomodoro =
+            active: true
+            type: 'task'
+            task: task
+            delta: value.delta
+            start: Date.now()
+            end: Date.now() + value.delta * 60 * 1000
+          $scope.$apply()
+          startTimer()
 
     timer = undefined
 
@@ -58,10 +74,7 @@ angular.module('chromodoroApp')
         alert('Another Pomodoro is already active')
       else
         $scope.task.lastUpdatedTime = Date.now()
-        timer = window.setInterval () ->
-          updateDelta()
-          $scope.$apply()
-        , 10000
+        startTimer()
         $scope.pomodoro =
           task: $scope.task
           type: 'task'
@@ -69,6 +82,7 @@ angular.module('chromodoroApp')
           end: Date.now() + 25*60*1000
           delta: 25
           active: true
+        save()
 
     $scope.newChild = () ->
       $scope.showCreate = true
@@ -106,8 +120,9 @@ angular.module('chromodoroApp')
       if t.name? and t.estimated? and t.elapsed?
         # If editing, it's already done being updated.
         if not $scope.editing
-          # If newly created, it needs to be added to the parent.
+          # If newly created, it needs to be added to the parent and to have an ID made.
           $scope.task.children.push $scope.editTask
+          makeId($scope.editTask)
 
         $scope.showCreate = false
         save()
@@ -126,11 +141,45 @@ angular.module('chromodoroApp')
               delta: 5
               start: Date.now()
               end: Date.now() + 5 * 60 * 1000
-            save()
           else
             $scope.pomodoro.active = false
+        save()
 
     save = () ->
       storage.store('tasks', $scope.rootTask)
+      if $scope.pomodoro and $scope.pomodoro.task and $scope.pomodoro.active
+        pom =
+          task: $scope.pomodoro.task.id
+          delta: $scope.pomodoro.delta
+        storage.store('pomodoro', pom)
+
+    startTimer = () ->
+      if not timer?
+        timer = window.setInterval () ->
+          updateDelta()
+          $scope.$apply()
+        , 10000
+
+    # Takes an almost-completed task and creates a (hopefully) unique ID for it.
+    makeId = (task) ->
+      id = Date.now() + '-'
+      for i in [1..10]
+        x = (i * 30) % task.name.length
+        id += task.name.charAt(x)
+      task.id = id
+
+    # Preorder traverses the task tree, looking for the given ID.
+    findTask = (id, task) ->
+      if not task?
+        task = $scope.rootTask
+
+      if task.id == id
+        return task
+
+      if task.children?.length
+        for c in task.children
+          res = findTask(id, c)
+          if res?
+            return res
 
   ]
