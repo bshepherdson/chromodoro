@@ -95,7 +95,9 @@ angular.module('chromodoroApp')
           for c, i in parent.children
             if c is $scope.task
               parent.children.splice(i, 1)
-              save()
+              break
+          save()
+          $scope.up()
 
     # Saves the editing or newly created button
     $scope.commit = () ->
@@ -115,11 +117,16 @@ angular.module('chromodoroApp')
         $scope.pomodoro.delta = Math.ceil(($scope.pomodoro.end - Date.now()) / 60000)
         if $scope.pomodoro.delta <= 0
           if $scope.pomodoro.type is 'task'
+            $scope.pomodoro.task.elapsed += 1
+            $scope.pomodoro.task.lastUpdatedTime = Date.now()
             $scope.pomodoro =
+              task: $scope.pomodoro.task
+              active: true
               type: 'break'
               delta: 5
               start: Date.now()
               end: Date.now() + 5 * 60 * 1000
+            save()
           else
             $scope.pomodoro.active = false
 
