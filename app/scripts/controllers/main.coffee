@@ -24,15 +24,16 @@ angular.module('chromodoroApp')
       storage.fetch 'pomodoro', (value) ->
         if value?
           task = findTask(value.task)
-          $scope.pomodoro =
-            active: true
-            type: 'task'
-            task: task
-            delta: value.delta
-            start: Date.now()
-            end: Date.now() + value.delta * 60 * 1000
-          $scope.$apply()
-          startTimer()
+          if task?
+            $scope.pomodoro =
+              active: true
+              type: 'task'
+              task: task
+              delta: value.delta
+              start: Date.now()
+              end: Date.now() + value.delta * 60 * 1000
+            $scope.$apply()
+            startTimer()
 
     timer = undefined
 
@@ -110,8 +111,14 @@ angular.module('chromodoroApp')
             if c is $scope.task
               parent.children.splice(i, 1)
               break
+
+          # If the deleted task is in the ancestor chain of the active pomodoro, the pomodoro task will be gone.
+          # Detect that by failing to find it in the modified tree, and delete the active pomodoro if it's gone.
+          if $scope.pomodoro? and $scope.pomodoro.active and not findPath($scope.pomodoro.task.id, $scope.rootTask)?
+            $scope.pomodoro = undefined
+
           save()
-          $scope.up()
+          $scope.up($scope.hierarchy.length - 2);
 
     # Saves the editing or newly created button
     $scope.commit = () ->
@@ -170,16 +177,25 @@ angular.module('chromodoroApp')
 
     # Preorder traverses the task tree, looking for the given ID.
     findTask = (id, task) ->
+      arr = findPath(id, task)
+      if arr? and arr.length > 0
+        return arr[0]
+
+
+    # Preorder traversal of the task tree, looking for the ID.
+    # Returns an array of ancestors, with the target at [0] and the root at [n-1].
+    findPath = (id, task) ->
       if not task?
         task = $scope.rootTask
 
       if task.id == id
-        return task
+        return [task]
 
       if task.children?.length
         for c in task.children
-          res = findTask(id, c)
+          res = findPath(id, c)
           if res?
+            res.push(task)
             return res
 
   ]
