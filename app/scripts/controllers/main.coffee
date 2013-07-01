@@ -63,9 +63,12 @@ angular.module('chromodoroApp')
       $scope.task = $scope.hierarchy[index]
       $scope.hierarchy.splice(index+1, 1000) # Remove all later elements
 
-    $scope.showChild = (index) ->
-      $scope.task = $scope.task.children[index]
-      $scope.hierarchy.push $scope.task
+    $scope.showChild = (id) ->
+      for c in $scope.task.children
+        if c.id is id
+          $scope.task = c
+          $scope.hierarchy.push c
+          break
 
     # Performs a pomodoro on this task.
     $scope.doPomodoro = () ->
@@ -131,6 +134,10 @@ angular.module('chromodoroApp')
 
         $scope.showCreate = false
         save()
+
+    $scope.markDone = () ->
+      $scope.task.completed = not $scope.task.completed
+      save()
 
     updateDelta = () ->
       if $scope.pomodoro? and $scope.pomodoro.active
