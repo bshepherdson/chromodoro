@@ -1,1 +1,6 @@
 /* Will be compiled down to a single stylesheet with your sass files */
+.completed {
+  text-decoration: line-through;
+  background-color: #d8d8d8;
+}
+

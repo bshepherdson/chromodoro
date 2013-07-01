@@ -80,6 +80,7 @@
         <div class="offset1 span5">
           <button class="btn btn-danger" data-ng-enabled="!pomodoro.active" data-ng-click="doPomodoro()">Pomodoro</button>
           <button class="btn btn-success" data-ng-click="newChild()">+Subtask</button>
+          <button class="btn btn-primary" data-ng-click="markDone()">{{ task.completed ? "Not Done" : "Done" }}</button>
           <button class="btn" data-ng-click="edit()">Edit</button>
           <button class="btn btn-inverse" data-ng-click="delete()">Delete</button>
         </div>
@@ -87,15 +88,19 @@
 
       <div class="row-fluid" data-ng-show="task.children && task.children.length">
         <h3>Subtasks</h3>
-        <div class="row-fluid" data-ng-repeat="child in task.children | subtaskSort">
-          <div class="span4"><a data-ng-click="showChild(child.id)"><strong>{{child.name}}</strong></a></div>
-          <div class="span1">
-            <p data-ng-show="child.children && child.children.length">{{ showTotals(child) }}</p>
-          </div>
-          <div class="span1">
-            <p>{{ showMine(child) }}</p>
-          </div>
-        </div>
+        <table class="table table-hover">
+          <tr data-ng-repeat="child in task.children | subtaskSort"  data-ng-click="showChild(child.id)" data-ng-class="{ completed: child.completed }">
+            <td width="80%">
+              <strong>{{ child.name }}</strong>
+            </td>
+            <td>
+              <span data-ng-show="child.children && child.children.length">{{ showTotals(child) }}</span>
+            </td>
+            <td>
+              {{ showMine(child) }}
+            </td>
+          </tr>
+        </table>
       </div>
     </div>
   </div>
