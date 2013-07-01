@@ -70,6 +70,17 @@ angular.module('chromodoroApp')
           $scope.hierarchy.push c
           break
 
+    $scope.goTo = (id) ->
+      path = findPath(id)
+      $scope.task = path[0]
+      $scope.hierarchy = path.reverse()
+      $scope.searchQuery = undefined
+
+    $scope.$watch 'searchQuery', (nu, old) ->
+      if nu? and nu isnt old
+        $scope.searchResults = taskSearch(nu)
+
+
     # Performs a pomodoro on this task.
     $scope.doPomodoro = () ->
       if $scope.pomodoro?.active
@@ -205,4 +216,20 @@ angular.module('chromodoroApp')
           if res?
             res.push(task)
             return res
+
+
+    taskSearch = (query, task) ->
+      return unless query?
+      if not task?
+        task = $scope.rootTask
+
+      ret = []
+      if task.name.indexOf(query) >= 0
+        ret.push task
+
+      for c in task.children
+        ret = ret.concat(taskSearch(query, c))
+
+      return ret
+
 

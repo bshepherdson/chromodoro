@@ -22,14 +22,25 @@
 <div class="container-fluid" data-ng-show="task">
   <div class="row-fluid">
     <div class="span2">
-      <ul class="nav nav-list">
-        <li class="nav-header">Task Hierarchy</li>
-        <li data-ng-repeat="parent in hierarchy" data-ng-class="{ active: $last }"><a data-ng-click="up($index)">{{ parent.name }}</a>
-      </ul>
+      <!-- Search box -->
+      <div class="row-fluid">
+        <form class="search-form">
+          <input class="search-query span12" type="text" placeholder="Search" data-ng-model="searchQuery" />
+        </form>
+
+      </div>
+
+      <!-- Task hierarchy -->
+      <div class="row-fluid">
+        <ul class="nav nav-list">
+          <li class="nav-header">Task Hierarchy</li>
+          <li data-ng-repeat="parent in hierarchy" data-ng-class="{ active: $last }"><a data-ng-click="up($index)">{{ parent.name }}</a>
+        </ul>
+      </div>
     </div>
 
     <!-- Creation form -->
-    <div class="span10" data-ng-show="showCreate">
+    <div class="span10" data-ng-show="showCreate && !searchQuery">
       <div class="row-fluid">
         <form class="form-horizontal">
           <legend data-ng-show="!editing">New Subtask</legend>
@@ -63,9 +74,22 @@
       </div>
     </div>
 
+    <!-- Search results -->
+    <div class="span10" data-ng-show="searchQuery">
+      <table class="table table-hover" data-ng-show="searchResults">
+        <tr data-ng-repeat="result in searchResults | limitTo:5" data-ng-click="goTo(result.id)">
+          <td>{{ result.name }}</td>
+        </tr>
+      </table>
+
+      <div data-ng-show="!searchResults || !searchResults.length">
+        <p>No tasks found.</p>
+        <a data-ng-click="searchQuery = undefined">Clear search</a>
+      </div>
+    </div>
 
     <!-- Content -->
-    <div class="span10" data-ng-show="!showCreate">
+    <div class="span10" data-ng-show="!showCreate && !searchQuery">
       <!-- Meta row -->
       <div class="row-fluid">
         <!-- Combined totals, if there are children -->
