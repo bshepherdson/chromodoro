@@ -255,7 +255,9 @@ module.exports = function (grunt) {
             '.htaccess',
             'components/**/*',
             'images/{,*/}*.{gif,webp}',
-            'styles/fonts/*'
+            'styles/fonts/*',
+            'manifest.json',
+            'background.js'
           ]
         }]
       }
@@ -294,10 +296,25 @@ module.exports = function (grunt) {
     'htmlmin',
     'concat',
     'copy',
-    'cdnify',
+    // 'cdnify',
     'ngmin',
     'uglify',
     'rev',
+    'usemin'
+  ]);
+
+  // Like build, but unminified.
+  grunt.registerTask('debug', [
+    'clean:dist',
+    'jshint',
+    'coffee',
+    'compass:dist',
+    'useminPrepare',
+    'imagemin',
+    'cssmin',
+    'htmlmin',
+    'concat',
+    'copy',
     'usemin'
   ]);
 

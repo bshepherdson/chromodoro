@@ -1,0 +1,20 @@
+{
+  "name": "Chromodoro",
+  "version": "0.0.1",
+  "manifest_version": 2,
+  "description": "Pomodoro technique time tracker for Chrome",
+  "app": {
+    "background": {
+      "persistent": true,
+      "scripts": [
+        "background.js"
+      ]
+    }
+  },
+  "permissions": [
+    "storage",
+    "alarms",
+    "notifications"
+  ]
+}
+

@@ -6,31 +6,42 @@ angular.module('chromodoroApp', [])
     if not window.chrome.storage?
       changeHandlers = []
 
-      set = (base, key, value, cb) ->
-        localStorage[base + '___' + key] = JSON.stringify(value)
+      set = (base, changes, cb) ->
+        for key, value of changes
+          localStorage[base + '___' + key] = JSON.stringify(value)
+
         window.setTimeout((() ->
-          o = {}
-          o[key] = value
           for h in changeHandlers
-            h(o, base)
+            h(changes, base)
           cb()
         ), 0)
 
-      get = (base, key, cb) ->
+      get = (base, keys, cb) ->
         window.setTimeout () ->
-          v = localStorage[base + '___' + key]
-          if v?
-            cb(JSON.parse(v))
-          else cb()
+          obj = keys
+          if keys instanceof Array
+            obj = {}
+            for key in keys
+              obj[key] = null
+          if typeof keys is 'string'
+            obj = {}
+            obj[keys] = null
+
+          for key, def of obj
+            v = localStorage[base + '___' + key]
+            if v?
+              obj[key] = JSON.parse(v)
+
+          cb(obj)
         , 0
 
       window.chrome.storage =
         local:
           get: (key, cb) -> get('local', key, cb)
-          set: (key, value, cb) -> set('local', key, value, cb)
+          set: (changes, cb) -> set('local', changes, cb)
         sync:
           get: (key, cb) -> get('sync', key, cb)
-          set: (key, value, cb) -> set('sync', key, value, cb)
+          set: (changes, cb) -> set('sync', changes, cb)
 
         onChanged:
           addListener: (cb) ->

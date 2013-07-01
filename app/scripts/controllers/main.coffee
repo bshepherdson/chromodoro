@@ -1,12 +1,13 @@
 'use strict'
 
 angular.module('chromodoroApp')
-  .controller 'MainCtrl', ['$scope', 'config', 'storage', ($scope, config, storage) ->
+  .controller 'MainCtrl', ($scope, config, storage) ->
     # Fetch the root node first.
-    storage.fetch 'tasks', (value) ->
-      if not value?
+    storage.fetch ['tasks', 'pomodoro'], (value) ->
+      root = value?.tasks
+      if not root?
         # Prepare the default value:
-        value =
+        root =
           id: 'WORK'
           name: 'Work'
           estimated: 0
@@ -14,26 +15,23 @@ angular.module('chromodoroApp')
           children: []
           lastUpdatedTime: 0
 
-      $scope.rootTask = value
-      $scope.task = value
-      $scope.hierarchy = [value]
+      $scope.rootTask = root
+      $scope.task = root
+      $scope.hierarchy = [root]
       $scope.$apply()
 
-      # Launch another fetch to get the live Pomodoro, if one exists.
-      # This one must wait until all the tasks are retrieved.
-      storage.fetch 'pomodoro', (value) ->
-        if value?
-          task = findTask(value.task)
-          if task?
-            $scope.pomodoro =
-              active: true
-              type: 'task'
-              task: task
-              delta: value.delta
-              start: Date.now()
-              end: Date.now() + value.delta * 60 * 1000
-            $scope.$apply()
-            startTimer()
+      if value?.pomodoro?
+        task = findTask(value.pomodoro.task, root)
+        if task?
+          $scope.pomodoro =
+            active: true
+            type: 'task'
+            task: task
+            delta: value.pomodoro.delta
+            start: Date.now()
+            end: Date.now() + value.pomodoro.delta * 60 * 1000
+          $scope.$apply()
+          startTimer()
 
     timer = undefined
 
@@ -153,12 +151,15 @@ angular.module('chromodoroApp')
         save()
 
     save = () ->
-      storage.store('tasks', $scope.rootTask)
+      obj =
+        tasks: $scope.rootTask
+
       if $scope.pomodoro and $scope.pomodoro.task and $scope.pomodoro.active
-        pom =
+        obj.pomodoro =
           task: $scope.pomodoro.task.id
           delta: $scope.pomodoro.delta
-        storage.store('pomodoro', pom)
+
+      storage.store(obj)
 
     startTimer = () ->
       if not timer?
@@ -198,4 +199,3 @@ angular.module('chromodoroApp')
             res.push(task)
             return res
 
-  ]

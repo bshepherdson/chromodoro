@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('chromodoroApp')
-  .factory 'config', [($q) ->
+  .factory 'config', ($q) ->
     config = {}
     lastUpdatedTime = 0
 
@@ -19,7 +19,6 @@ angular.module('chromodoroApp')
         return config.key
       set: (key, value) ->
         config.key = value
-        chrome.storage.sync.set 'config', config
+        chrome.storage.sync.set { config: config }
 
     }
-  ]

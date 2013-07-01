@@ -18,7 +18,7 @@ angular.module('chromodoroApp')
         return d
 
       # Returns a $q promise that resolves or rejects, unless passed a callback
-      store: (key, value, cb) ->
+      store: (changes, cb) ->
         d = undefined
         if (not cb?)
           d = $q.defer()
@@ -28,7 +28,7 @@ angular.module('chromodoroApp')
             else
               d.resolve()
 
-        chrome.storage.local.set(key, value, cb)
+        chrome.storage.local.set(changes, cb)
         return d
     }
   ]
